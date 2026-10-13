@@ -1,0 +1,20 @@
+{
+  "models": [
+    {
+      "name": "closed-vlm",
+      "model": "provider-model-id",
+      "backend": "openai_compatible",
+      "base_url": "https://api.example.com/v1",
+      "api_key_env": "CLOSED_VLM_API_KEY",
+      "extra_body": {}
+    },
+    {
+      "name": "open-vlm",
+      "model": "local-model-id",
+      "backend": "openai_compatible",
+      "base_url": "http://127.0.0.1:8000/v1",
+      "api_key_env": "LOCAL_VLM_API_KEY",
+      "extra_body": {}
+    }
+  ]
+}
