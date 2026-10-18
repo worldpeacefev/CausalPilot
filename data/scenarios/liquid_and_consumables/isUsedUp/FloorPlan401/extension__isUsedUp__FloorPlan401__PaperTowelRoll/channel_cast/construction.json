@@ -1,0 +1,1 @@
+{"profile":"channel_cast","parameters":{"context_rgb_scale":[1.0,1.01,0.99],"nuisance_rgb_scale":[0.88,1.1,0.94]},"source_image_hashes":{"anchor":"e49f14d61b3b858280512b4707495e3bafb63e3e9d8075fc47d804a07d8d79b1","causal":"f4a1fee57cbb40461bd8b2e88142ac134d5c8ef0a4ebcc1a4006f7382615a029"},"causal_target_union_bbox_rms":42.406283985901446,"nuisance_image_rms":8.90957276227282}

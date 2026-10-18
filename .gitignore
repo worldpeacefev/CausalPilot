@@ -8,3 +8,15 @@ __pycache__/
 results/
 Test/
 !.env.example
+
+# Local validation and model runs stay outside the data release.
+tests/
+test_*.py
+*_test.py
+verification/
+audit/
+logs/
+*.log
+.ipynb_checkpoints/
+_sim_runs/
+rejections.json

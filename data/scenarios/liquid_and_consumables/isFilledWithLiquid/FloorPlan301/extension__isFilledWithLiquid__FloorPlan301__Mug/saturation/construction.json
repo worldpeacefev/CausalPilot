@@ -1,0 +1,1 @@
+{"profile":"saturation","parameters":{"context_saturation":0.96,"nuisance_saturation":0.55},"source_image_hashes":{"anchor":"cc39cba401995bac71395d8bf0e9ad55aedad9e4e17c363897257a4cae61c26e","causal":"eb40ecb817c9fc63ddddd0c0f426131ca6d31fb99a3a2eca6c781b9448e91741"},"causal_target_union_bbox_rms":9.522601444542607,"nuisance_image_rms":4.971647365497222}

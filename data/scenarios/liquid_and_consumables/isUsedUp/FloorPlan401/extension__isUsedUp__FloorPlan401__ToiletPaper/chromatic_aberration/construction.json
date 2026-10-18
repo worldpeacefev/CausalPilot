@@ -1,0 +1,1 @@
+{"profile":"chromatic_aberration","parameters":{"context_channel_shift_pixels":1,"nuisance_channel_shift_pixels":4},"source_image_hashes":{"anchor":"6112956c05d739678254bfc54749188834340e034703165a4018b10888261896","causal":"99e7bb8411a74f1fbeaca3757cd1700079627888757f79582383ebf9e878e0af"},"causal_target_union_bbox_rms":28.396798646583612,"nuisance_image_rms":6.133443915710914}

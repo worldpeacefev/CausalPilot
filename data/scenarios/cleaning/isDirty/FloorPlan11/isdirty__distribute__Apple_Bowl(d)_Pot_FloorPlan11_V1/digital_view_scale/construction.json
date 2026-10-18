@@ -1,0 +1,1 @@
+{"profile":"digital_view_scale","parameters":{"context_scale":0.98,"nuisance_scale":0.88,"padding_rgb":[127,127,127]},"source_image_hashes":{"anchor":"35bd9852b8b3b17d4136dc91bb0aec62953e8694087ac794d7057243803dc219","causal":"3d738974811ced7eb5067183a9c5c20cac526a8df4edb266e93e5548f833dfcf"},"causal_target_union_bbox_rms":2.707694537258161,"nuisance_image_rms":47.14705790324121}

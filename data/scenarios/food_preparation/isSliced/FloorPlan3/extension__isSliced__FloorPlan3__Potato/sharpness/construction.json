@@ -1,0 +1,1 @@
+{"profile":"sharpness","parameters":{"context_sharpness":1.05,"nuisance_sharpness":2.2},"source_image_hashes":{"anchor":"67b721f959d4d19f12ed6d24a887d2c0db42cd6ec825267a095741057e39089d","causal":"5273ee4f856f1fbf7058d3e2039c9abf6d3db03091b14c9aaebdc8bec2a4a883"},"causal_target_union_bbox_rms":45.148126688325014,"nuisance_image_rms":4.0028833487574635}

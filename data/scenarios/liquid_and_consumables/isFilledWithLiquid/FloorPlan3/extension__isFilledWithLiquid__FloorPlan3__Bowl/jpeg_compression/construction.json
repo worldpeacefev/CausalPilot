@@ -1,0 +1,1 @@
+{"profile":"jpeg_compression","parameters":{"context_jpeg_quality":95,"nuisance_jpeg_quality":38},"source_image_hashes":{"anchor":"ae8ef31e37acd88c2cc47301954907d436563236645dccfc870c03883aa2801e","causal":"aa5c245c93f7afa9c422d0a6332175b1d7dea57b122b495181dc251cbe9c7419"},"causal_target_union_bbox_rms":22.513391878009273,"nuisance_image_rms":4.53652065276631}

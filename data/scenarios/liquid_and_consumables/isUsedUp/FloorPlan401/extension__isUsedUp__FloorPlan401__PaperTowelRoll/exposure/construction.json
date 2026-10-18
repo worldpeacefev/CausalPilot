@@ -1,0 +1,1 @@
+{"profile":"exposure","parameters":{"context_brightness":0.92,"nuisance_brightness":0.68},"source_image_hashes":{"anchor":"e49f14d61b3b858280512b4707495e3bafb63e3e9d8075fc47d804a07d8d79b1","causal":"f4a1fee57cbb40461bd8b2e88142ac134d5c8ef0a4ebcc1a4006f7382615a029"},"causal_target_union_bbox_rms":38.93053797196728,"nuisance_image_rms":22.13982180814588}

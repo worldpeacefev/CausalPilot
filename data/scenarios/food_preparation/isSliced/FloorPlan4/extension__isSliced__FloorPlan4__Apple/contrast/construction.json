@@ -1,0 +1,1 @@
+{"profile":"contrast","parameters":{"context_contrast":0.95,"nuisance_contrast":0.7},"source_image_hashes":{"anchor":"170168702abe6410c34687dbd183a31ce2727bac49780c971505316714998a4a","causal":"6377a69b0eee4e6ac3542c5b99bcee01a3dfda028dbef716acc38b5823160fff"},"causal_target_union_bbox_rms":30.322739533533785,"nuisance_image_rms":10.504433256098096}

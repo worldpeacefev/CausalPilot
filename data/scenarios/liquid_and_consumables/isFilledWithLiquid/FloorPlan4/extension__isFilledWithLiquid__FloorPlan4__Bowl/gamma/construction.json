@@ -1,0 +1,1 @@
+{"profile":"gamma","parameters":{"context_gamma":0.96,"nuisance_gamma":1.28},"source_image_hashes":{"anchor":"cdc6c516e5267e80c8ddcd36bd1ad0e74da2f7e8b6f794d76759048391a093ed","causal":"92b60108ced8dda35536e5b6c8103a28022cb51554d8ec5d00204c30c757e150"},"causal_target_union_bbox_rms":16.010277452515595,"nuisance_image_rms":23.945806378513733}

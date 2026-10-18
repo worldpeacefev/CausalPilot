@@ -1,0 +1,1 @@
+{"profile":"sensor_banding","parameters":{"context_amplitude":0.015,"nuisance_amplitude":0.13,"period_pixels":41},"source_image_hashes":{"anchor":"372e04f720fad5ac45b7403289868d893a78b758132f2049a8e34989eb34dc5e","causal":"471e4fae16061102ebe54f7fcb6a3c4526c4864207616c3d88111881861b268f"},"causal_target_union_bbox_rms":24.993273970083408,"nuisance_image_rms":7.448946289883523}

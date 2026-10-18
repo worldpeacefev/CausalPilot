@@ -1,0 +1,1 @@
+{"profile":"sensor_noise","parameters":{"context_noise_sigma":1.0,"nuisance_noise_sigma":10.0},"source_image_hashes":{"anchor":"2d1f0730388009cad2774f0deba3f300c004b10b49311dab8485fe558754a01e","causal":"e4c5f44144ef97415d53abfc22b90996a9e957bf4b3ff1a4858f88f6f8b39671"},"causal_target_union_bbox_rms":14.839947470281562,"nuisance_image_rms":9.963102488884685}

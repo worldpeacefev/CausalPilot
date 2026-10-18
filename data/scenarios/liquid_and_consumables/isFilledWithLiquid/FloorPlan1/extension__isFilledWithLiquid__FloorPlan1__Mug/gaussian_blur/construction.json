@@ -1,0 +1,1 @@
+{"profile":"gaussian_blur","parameters":{"context_blur_radius":0.15,"nuisance_blur_radius":1.35},"source_image_hashes":{"anchor":"af3d499ef82d3419d13287bf9218e9270eff3c516b7007451859c95081bd3690","causal":"62928d859a351873ef1d5d4242dcfa2a44d2fce9823f153636378634196870a6"},"causal_target_union_bbox_rms":26.380272484781276,"nuisance_image_rms":8.866175603055623}

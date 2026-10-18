@@ -1,0 +1,1 @@
+{"profile":"color_quantization","parameters":{"context_colors":192,"nuisance_colors":24},"source_image_hashes":{"anchor":"74ea9a27b461b07a4fd8c577e1e4b1d9beb0aeb8ffcfed850c1bce3b7ba222aa","causal":"2c19291ab40fd96c6e280a999015104732d061c1312b703e2c77053449ce2a7d"},"causal_target_union_bbox_rms":5.842219163641598,"nuisance_image_rms":4.839285550731655}

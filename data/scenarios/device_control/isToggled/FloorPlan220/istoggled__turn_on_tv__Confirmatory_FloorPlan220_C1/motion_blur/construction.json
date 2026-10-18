@@ -1,0 +1,1 @@
+{"profile":"motion_blur","parameters":{"context_kernel_length":1,"nuisance_kernel_length":5},"source_image_hashes":{"anchor":"debe9c0178b3ac5d3383f5ff9a19fe60e8f1ad71549152d6d2dabd4d523c2b16","causal":"32936ec9ea08138b685eba3d665556dd555d1b85af7aa5998259ec3bd8fd9182"},"causal_target_union_bbox_rms":72.41914707362676,"nuisance_image_rms":6.5155635498466795}
