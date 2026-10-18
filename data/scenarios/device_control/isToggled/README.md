@@ -1,6 +1,6 @@
 # isToggled
 
-Semantic scenario: `device_control`.
+Shared simulator/source view before bulk expansion. Use [paper](../../../paper/) or [extended](../../../extended/) for collection membership.
 
 | Physical scene | Room | Units | Triplets |
 | --- | --- | ---: | ---: |
@@ -14,6 +14,7 @@ Semantic scenario: `device_control`.
 | [FloorPlan209](FloorPlan209/) | living_room | 1 | 20 |
 | [FloorPlan212](FloorPlan212/) | living_room | 1 | 21 |
 | [FloorPlan213](FloorPlan213/) | living_room | 1 | 20 |
+| [FloorPlan216](FloorPlan216/) | living_room | 1 | 20 |
 | [FloorPlan217](FloorPlan217/) | living_room | 1 | 20 |
 | [FloorPlan218](FloorPlan218/) | living_room | 1 | 20 |
 | [FloorPlan220](FloorPlan220/) | living_room | 1 | 20 |

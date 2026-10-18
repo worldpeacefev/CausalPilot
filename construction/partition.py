@@ -1,0 +1,328 @@
+"""Build disjoint paper-candidate / extended views from a reviewed ID selection.
+
+An eligibility file is external review input, not an inference/evaluation result.
+It must contain eligible_triplet_ids and agent_primary_visual_review_units.
+This assembler never certifies a record just because a quota needs filling.
+"""
+
+import argparse
+import copy
+import json
+from collections import Counter, defaultdict
+from pathlib import Path
+from urllib.parse import quote
+
+from construction.common import ASPECTS, write_json
+
+
+def counts(rows):
+    # Source/screened rows precede bulk replicas. A bulk replica's weaker
+    # output contract must not overwrite the originating unit's source tier.
+    units = {}
+    for row in rows:
+        units.setdefault(row["causal_state_unit"], row)
+    return {
+        "causal_state_units": len(units),
+        "triplets": len(rows),
+        "observations": 3 * len(rows),
+        "physical_scenes": len({r["scene"] for r in rows}),
+        "states_by_predicate": dict(
+            sorted(Counter(r["predicate"] for r in units.values()).items())
+        ),
+        "triplets_by_predicate": dict(
+            sorted(Counter(r["predicate"] for r in rows).items())
+        ),
+        "triplets_by_profile": dict(
+            sorted(
+                Counter(
+                    r.get("replica_profile", "simulator_lighting") for r in rows
+                ).items()
+            )
+        ),
+        "states_by_certification_tier": dict(
+            sorted(Counter(r["certification_tier"] for r in units.values()).items())
+        ),
+        "triplets_by_partition": dict(
+            sorted(Counter(r["release_partition"] for r in rows).items())
+        ),
+        "triplets_by_certification_tier": dict(
+            sorted(Counter(r["certification_tier"] for r in rows).items())
+        ),
+    }
+
+
+def read_rows(data, catalog):
+    for shard in catalog["shards"]:
+        with (data / shard["manifest"]).open() as stream:
+            yield from (json.loads(line) for line in stream)
+
+
+def write_view(data, name, rows, bulk_shards=()):
+    groups = defaultdict(list)
+    for row in rows:
+        groups[(row["scenario_aspect"], row["predicate"], row["scene"])].append(row)
+    shards = []
+    for (aspect, predicate, scene), group in sorted(groups.items()):
+        path = Path(name) / "scenarios" / aspect / predicate / scene / "triplets.jsonl"
+        target = data / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(
+            "".join(
+                json.dumps(r, ensure_ascii=False, separators=(",", ":")) + "\n"
+                for r in sorted(group, key=lambda r: r["triplet_id"])
+            )
+        )
+        shards.append(
+            {
+                "manifest": path.as_posix(),
+                "scenario_aspect": aspect,
+                "predicate": predicate,
+                "scene": scene,
+                "physical_scene_type": group[0]["physical_scene_type"],
+                "triplets": len(group),
+                "causal_state_units": len({r["causal_state_unit"] for r in group}),
+            }
+        )
+    shards.extend(bulk_shards)
+    # Every collection can be browsed independently by scenario/type/scene.
+    for aspect in sorted({s["scenario_aspect"] for s in shards}):
+        aspect_path = data / name / "scenarios" / aspect
+        aspect_path.mkdir(parents=True, exist_ok=True)
+        (aspect_path / "README.md").write_text(
+            f"# {aspect}\n\n"
+            + "\n".join(
+                f"- [{p}]({p}/)"
+                for p in sorted(
+                    {s["predicate"] for s in shards if s["scenario_aspect"] == aspect}
+                )
+            )
+            + "\n"
+        )
+        for predicate in sorted(
+            {s["predicate"] for s in shards if s["scenario_aspect"] == aspect}
+        ):
+            pred_shards = [s for s in shards if s["predicate"] == predicate]
+            pred_path = aspect_path / predicate
+            pred_path.mkdir(parents=True, exist_ok=True)
+            (pred_path / "README.md").write_text(
+                f"# {predicate}\n\n"
+                + "\n".join(
+                    f"- [{scene}]({scene}/)"
+                    for scene in sorted({s["scene"] for s in pred_shards})
+                )
+                + "\n"
+            )
+            for scene in sorted({s["scene"] for s in pred_shards}):
+                scene_path = pred_path / scene
+                manifests = [s for s in pred_shards if s["scene"] == scene]
+                (scene_path / "README.md").write_text(
+                    f"# {scene} / {predicate}\n\nAll record paths resolve relative to top-level `data/`.\n\n"
+                    + "\n".join(
+                        f"- [{Path(s['manifest']).relative_to(scene_path.relative_to(data))}]({quote(Path(s['manifest']).relative_to(scene_path.relative_to(data)).as_posix(), safe='/')}) ({s['triplets']} triplets)"
+                        for s in manifests
+                    )
+                    + "\n"
+                )
+    return shards
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--root", type=Path, default=Path(__file__).resolve().parents[1]
+    )
+    parser.add_argument("--eligibility", type=Path, required=True)
+    args = parser.parse_args()
+    data = args.root / "data"
+    source = data / "source_catalog.json"
+    if not source.exists():
+        source.write_bytes((data / "catalog.json").read_bytes())
+    source_catalog = json.loads(source.read_text())
+    original = list(read_rows(data, source_catalog))
+    selection = json.loads(args.eligibility.read_text())
+    eligible = set(selection["eligible_triplet_ids"])
+    reviewed = set(selection["agent_primary_visual_review_units"])
+    pool = [
+        r
+        for r in original
+        if r["triplet_id"] in eligible and r["causal_state_unit"] in reviewed
+    ]
+    if eligible - {r["triplet_id"] for r in original}:
+        raise ValueError("Eligibility references unknown triplets")
+    # Require an eligible primary for each selected unit; cap units at paper scale.
+    primaries = {
+        r["causal_state_unit"]: r
+        for r in pool
+        if r.get("replica_profile", "simulator_lighting") == "simulator_lighting"
+    }
+    unit_ids = set(
+        sorted(primaries, key=lambda u: (u.startswith("extension__"), u))[:71]
+    )
+    paper = [primaries[u] for u in sorted(unit_ids)]
+    primary_ids = {r["triplet_id"] for r in paper}
+    remaining = [
+        r
+        for r in pool
+        if r["causal_state_unit"] in unit_ids and r["triplet_id"] not in primary_ids
+    ]
+    # Preserve as much archived population as controls allow; never consult models.
+    remaining.sort(
+        key=lambda r: (
+            r["release_partition"] != "paper_archive",
+            r.get("replica_profile", ""),
+            r["causal_state_unit"],
+        )
+    )
+    paper += remaining[: max(0, 996 - len(paper))]
+    paper_ids = {r["triplet_id"] for r in paper}
+    extended = [copy.deepcopy(r) for r in original if r["triplet_id"] not in paper_ids]
+    paper = copy.deepcopy(paper)
+    for r in paper:
+        r["collection"] = "paper"
+        r["review_status"] = "automated_controls_and_agent_primary_visual_review"
+        r["paper_control_eligible"] = True
+        r["human_review_of_this_triplet_verified"] = False
+    for r in extended:
+        r["collection"] = "extended"
+    bulk_catalog = json.loads((data / "extended/bulk_catalog.json").read_text())
+    bulk = list(read_rows(data, bulk_catalog))
+    all_rows = paper + extended + bulk
+    ids = [r["triplet_id"] for r in all_rows]
+    if len(ids) != len(set(ids)):
+        raise ValueError("Collections contain duplicate triplet IDs")
+    paper_counts, extended_counts = counts(paper), counts(extended + bulk)
+    missing = sorted(set(ASPECTS) - {r["predicate"] for r in paper})
+    requirements = {
+        "reference": "all-finish.pdf, Table 4 and Appendix A.2",
+        "paper_sha256": json.loads((data / "paper_identity.json").read_text())[
+            "paper_sha256"
+        ],
+        "required": {
+            "causal_state_units": 71,
+            "triplets": 996,
+            "observations": 2988,
+            "predicates": sorted(ASPECTS),
+        },
+        "actual": paper_counts,
+        "membership": {
+            "historical_triplets_selected": sum(
+                r["release_partition"] == "paper_archive" for r in paper
+            ),
+            "additional_triplets_selected": sum(
+                r["release_partition"] != "paper_archive" for r in paper
+            ),
+            "historical_triplets_preserved_across_full_release": 996,
+        },
+        "fully_conforms_to_paper": False,
+        "status": "incomplete_paper_requirements",
+        "missing_predicates": missing,
+        "unit_shortfall": max(0, 71 - paper_counts["causal_state_units"]),
+        "triplet_shortfall": max(0, 996 - paper_counts["triplets"]),
+        "review": {
+            "reviewer": "Codex agent",
+            "date": "2026-10-19",
+            "all_selected_triplets": "raw metadata, exact symbolic controls, action sets, target visibility, bbox thresholds and image signals checked",
+            "primary_triplets": "agent visual review of every selected causal-state unit primary",
+            "human_review_of_every_generated_triplet_verified": False,
+            "selection_uses_tested_model_outputs": False,
+        },
+        "blockers": {
+            "isFilledWithLiquid": "Native filling also changes fillLiquid; Table 4 Boolean-only rule does not authorize this extra change.",
+            "isSliced": "Native slicing creates descendants and changes reciprocal containment; original three tiers do not authorize topology changes.",
+            "isUsedUp": "AI2-THOR 5.0.0 reports constant false through raw metadata accessor; trace-derived extension is not raw predicate certification.",
+            "manual_review": "Paper requires manual review of every generated triplet. Agent primary visual review and automated per-triplet checks are recorded honestly; human review is not claimed.",
+        },
+        "excluded_legacy_unit": {
+            "causal_state_unit": "istoggled__turn_on_tv__Confirmatory_FloorPlan224_C1",
+            "reason": "Side view of television hides on/off display; weak primary causal visual signal. Retained in extended/archive only.",
+        },
+        "interpretation": "A reviewed candidate collection at paper scale where possible, not the original experimental cohort or a claim of seven-predicate compliance.",
+    }
+    write_json(data / "paper/requirements.json", requirements)
+    paper_shards = write_view(data, "paper", paper)
+    extended_shards = write_view(data, "extended", extended, bulk_catalog["shards"])
+    for name, c, shards in (
+        ("paper", paper_counts, paper_shards),
+        ("extended", extended_counts, extended_shards),
+    ):
+        write_json(
+            data / name / "catalog.json",
+            {
+                "format_version": 2,
+                "path_base": "data",
+                "collection": name,
+                "taxonomy": ASPECTS,
+                "counts": c,
+                "shards": shards,
+                "fully_conforms_to_paper": False,
+            },
+        )
+    full_counts = counts(all_rows)
+    full_counts["weak_primary_visual_signal_units"] = len(
+        {
+            r["causal_state_unit"]
+            for r in original
+            if r.get("primary_visual_signal", {}).get("quality_flags")
+        }
+    )
+    full_counts["collections"] = {"paper": paper_counts, "extended": extended_counts}
+    full_counts["paper_archive"] = source_catalog["counts"]["paper_archive"]
+    write_json(data / "counts.json", full_counts)
+    write_json(
+        data / "catalog.json",
+        {
+            "format_version": 2,
+            "release_version": "2026.10.19-split",
+            "path_base": "data",
+            "taxonomy": ASPECTS,
+            "counts": full_counts,
+            "collection_catalogs": {
+                "paper": "paper/catalog.json",
+                "extended": "extended/catalog.json",
+            },
+            "shards": paper_shards + extended_shards,
+        },
+    )
+    index = json.loads((data / "unit_index.json").read_text())
+    paper_unit_counts = Counter(r["causal_state_unit"] for r in paper)
+    extended_unit_counts = Counter(r["causal_state_unit"] for r in extended + bulk)
+    for unit in index["units"]:
+        uid = unit["causal_state_unit"]
+        unit["collection_triplets"] = {
+            "paper": paper_unit_counts[uid],
+            "extended": extended_unit_counts[uid],
+        }
+    write_json(data / "unit_index.json", index)
+    lines = [
+        "# Benchmark collections",
+        "",
+        "All manifest paths resolve relative to top-level `data/`.",
+        "",
+        "| Collection | Units | Triplets | Observations | Predicates |",
+        "| --- | ---: | ---: | ---: | ---: |",
+    ]
+    for name, c in (("paper", paper_counts), ("extended", extended_counts)):
+        lines.append(
+            f"| [{name}]({name}/) | {c['causal_state_units']} | {c['triplets']} | {c['observations']} | {len(c['states_by_predicate'])} |"
+        )
+    lines += [
+        "",
+        "Triplet IDs are disjoint; units overlap because extra renders retain their originating unit ID.",
+        "Paper candidates do not yet satisfy seven-predicate coverage or verified human review of every triplet. See [requirements](paper/requirements.json).",
+        "The unchanged 996-triplet historical cohort remains in [benchmark.json](benchmark.json). It is an archive, not a certificate of compliance.",
+    ]
+    (data / "README.md").write_text("\n".join(lines) + "\n")
+    print(
+        json.dumps(
+            {
+                "paper": paper_counts,
+                "extended": extended_counts,
+                "missing_predicates": missing,
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

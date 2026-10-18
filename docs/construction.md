@@ -1,5 +1,50 @@
 # Reconstruct and extend
 
+## Two collection assembly
+
+After constructing/importing simulator units, generate the quantity expansion:
+
+```bash
+uv run python -m construction.expand_bulk --workers 4 --severities 6 --size 256
+```
+
+The 20 families create 120 correlated replicas per primary source unit. These
+JPEG images intentionally have no semantic quality screening. Source labels
+and evidence remain separately identified. New sources may be added, but their
+replicas do not increase the independent unit count. Current bulk coverage is
+92 source units; the later strict television replacement has its own 19 extra
+screened profiles.
+
+Review source records separately and prepare an external JSON object containing
+`eligible_triplet_ids` and `agent_primary_visual_review_units`. Eligibility
+must follow the original three tiers, raw metadata, exact controlled state,
+nonempty disjoint causal action sets, nuisance branch preservation, tier bbox
+thresholds, successful interventions and retained image signal. Model outputs
+must not inform selection. Then assemble the two disjoint views:
+
+```bash
+uv run python -m construction.partition --eligibility /outside/review-selection.json
+uv run python -m construction.checksums
+```
+
+The assembler requires review input and does not manufacture certificates to
+fill quotas. It preserves `source_catalog.json` as the pre-bulk source catalog.
+For a new initial source build, update that source catalog deliberately before
+repartitioning; do not assume overwriting the top-level catalog updates it.
+Review programs and execution outputs stay outside the repository. Counts and
+`paper/requirements.json` describe the actual remaining requirements.
+
+An independent strict television unit can be reconstructed with:
+
+```bash
+LP_NUM_THREADS=2 xvfb-run -a uv run --extra simulator python -m construction.native_toggle \
+  --output /tmp/native-tv --scenes FloorPlan216
+```
+
+This fresh-reset constructor holds a real RemoteControl, selects a reachable
+visible screen pose, and permits only the target `isToggled` change. The
+delivered recipe records all poses and commands. It does not claim human review.
+
 Run commands from the repository root. Python 3.10+ and `uv` are required.
 The lightweight reader/renderer uses Pillow and NumPy. Simulator generation
 additionally requires Linux, Xvfb, a working graphics driver, and AI2-THOR.

@@ -1,5 +1,24 @@
 # Dataset card
 
+## Current two-collection release
+
+`collection="paper"` selects **71 units / 996 triplets** passing exact original
+state-control tiers and per-record automated checks, with agent visual review
+of each primary. This is a **candidate** collection: only four predicates pass
+the original rules, and human review of every generated triplet is unverified.
+See `data/paper/requirements.json`; it explicitly says full conformance is false.
+
+`collection="extended"` selects **93 source units / 11,825 triplets**, including
+**11,040 bulk replicas** (20 families × 6 severities × 92 primary source units).
+Bulk replicas have no semantic quality gate, may lose task evidence, and use
+`extension-unreviewed-render-v1` / `unreviewed_expansion`. Source evidence moves
+to `source_validation`; it does not certify the delivered 256×256 JPEG image.
+The following stricter construction rules describe simulator source units and
+the earlier screened replica pipeline, **not** unreviewed bulk replicas.
+
+Triplet membership is disjoint; unit membership overlaps. Total unique units
+are 93, not 71+93. Historical archive membership is retained separately.
+
 ## Intended use
 
 Diagnose local next-action grounding under matched visual interventions in
@@ -37,7 +56,7 @@ New predicate extensions use separate, explicit contracts:
 
 New slice/liquid units require target/descendant bbox ≥1%; the separately
 qualified trace-derived consumable layer permits bbox ≥0.15% to retain the
-visible exhausted core. All new units require target-local causal RMS ≥5 and
+visible exhausted core. All simulator source units require target-local causal RMS ≥5 and
 nuisance full-image RMS ≥1, identical nuisance symbolic state, and separated
 action branches. Each role is reconstructed with a fresh scene reset; physics
 is paused before setup and interventions. This differs from starting a new
@@ -59,7 +78,7 @@ metadata/snapshots and all raw difference paths are retained. Records without
 this field use exact equality. This numerical allowance is an extension
 construction rule, not a retroactive change to the archived strict contract.
 
-Automated render replicas require causal target-union RMS ≥1 and nuisance RMS
+The earlier screened render replicas require causal target-union RMS ≥1 and nuisance RMS
 ≥1. These numerical gates check retained visual signal, **not human semantic
 visibility**. The resulting records remain `automated_checks_only` until a real
 review is recorded. No generated model response is used for selection.

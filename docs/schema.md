@@ -27,6 +27,7 @@ bytes, and unchanged labels. Use `catalog.json` for the larger release.
 | `target` | Privileged predicate target and decision object |
 | `replica_profile` | Nuisance generation profile |
 | `release_partition` | `paper_archive`, `nuisance_extension`, or `predicate_extension` |
+| `collection` | `paper` candidates or `extended`; membership is disjoint by triplet ID |
 | `certification_tier` | State-control and evidence contract |
 | `review_status` | Actual review evidence level |
 | `primary_visual_signal` | Primary causal target-union RMS and weak-signal flags; archived observations remain intact |
@@ -40,6 +41,22 @@ bytes, and unchanged labels. Use `catalog.json` for the larger release.
 For trace-derived consumables, `validation.predicate_value` is a declared
 extension label while `raw_metadata_predicate_value` and raw symbolic state
 remain `false`. Never silently treat that label as a metadata observation.
+
+Bulk replicas use `release_partition="bulk_extension"` and
+`certification_tier="extension-unreviewed-render-v1"`. Original validation is
+retained under `source_validation` at record and variant level. Source bounding
+boxes refer to the original image dimensions, not the delivered JPEG. Bulk
+records have no delivered-image visibility/bbox/RMS certificate.
+`construction` records the source triplet and source image hashes, family,
+severity, strengths, seed, output size and JPEG encoding parameters. The loader
+also checks `source_certification_tier` when excluding trace-derived used-up
+records, so re-rendering cannot silently bypass this default exclusion.
+
+Collection-specific catalogs still resolve all data paths relative to top-level
+`data/`. `iter_triplets("data", collection="paper")` is the supported API;
+do not pass `data/paper` as the data root. The paper catalog is a candidate
+collection with unresolved requirements, not a substitute for the historical
+cohort. Inspect `paper/requirements.json` before using it as a paper release.
 
 ## CIG metrics
 

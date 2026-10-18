@@ -1,5 +1,16 @@
 # 对齐 `all-finish.pdf`
 
+最新划分见 `data/paper/` 与 `data/extended/`：前者为 **71 units / 996 triplets**
+的已核查论文规模候选，后者为 **93 个来源 units / 11,825 triplets**，其中新增
+11,040 条未筛选批量扰动。两个集合的 triplet IDs 不重叠，units 可以共享。
+
+用户要求优先满足论文原口径，因此未放宽表 4 三类认证规则。候选集仍只有四类；
+液体、切片和耗材原生行为不能通过这些规则，全部留在扩展。每条候选做了自动核查、
+每个 unit 的 primary 做了代理视觉审核，但不声称逐条人工复核。
+`data/paper/requirements.json` 明确 `fully_conforms_to_paper=false`。
+候选集排除 FloorPlan224 侧面电视，加入新 FloorPlan216 严格 unit；
+原始归档保持完整，新候选集不能直接沿用论文原有测试成绩。
+
 依据 2026-10-19 提供的最终 PDF：正文 §3.1–3.4、附录 A.1/A.2、表 4/5
 及附录 B。原文件的 SHA-256 记录于 `data/paper_identity.json`。仓库不附带论文 PDF。
 
@@ -81,6 +92,7 @@ Drawer 变化。后者只允许该空抽屉的 `isOpen` 和自身关节位姿变
 不增加 causal-state unit 计数。
 
 历史电视 unit `istoggled__turn_on_tv__Confirmatory_FloorPlan224_C1` 的 primary
-目标区域像素 RMS 约为 0.312，低于本次 render 扩展的 1.0 门槛。论文的 strict
-tier 本身没有规定这项 RMS 门槛，因此原条目保留并标记为弱视觉信号，等待人工复核；
-不会为了让校验全绿而删除历史数据或放宽新增 replica 的数值要求。
+目标区域像素 RMS 约为 0.312，且代理视觉检查确认侧面视角无法辨认开关画面。
+原条目留在扩展及归档，排除于论文候选集。新 FloorPlan216 电视 unit 的正面屏幕
+变化清晰，fresh reset 后原始 symbolic state 仅目标 Boolean 改变，使用原 strict tier。
+这项替换不修复另三类谓词与人工复核的缺口。

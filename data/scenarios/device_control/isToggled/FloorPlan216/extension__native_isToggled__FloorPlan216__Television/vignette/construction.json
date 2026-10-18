@@ -1,0 +1,1 @@
+{"profile":"vignette","parameters":{"context_edge_scale":0.96,"nuisance_edge_scale":0.58},"source_image_hashes":{"anchor":"fbe596109662c20fb991b5b5c2e0ad2345ef9bb26fb0fa11a315146d835a57cc","causal":"07500d8c41f127ef5efd9fe56eaef77fd21653b32308d82e04de42363bd10e65"},"causal_target_union_bbox_rms":83.22153440237463,"nuisance_image_rms":22.627400785475984}
