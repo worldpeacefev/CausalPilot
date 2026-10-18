@@ -3,12 +3,12 @@
 ## Current two-collection release
 
 `collection="paper"` selects **71 units / 996 triplets** passing exact original
-state-control tiers and per-record automated checks, with agent visual review
-of each primary. This is a **candidate** collection: only four predicates pass
-the original rules, and human review of every generated triplet is unverified.
+state-control tiers and per-record automated checks, with user-requested agent visual review
+of every selected triplet. This is a **candidate** collection: only four predicates pass
+the original rules. Proxy review is complete; actual human review is not claimed.
 See `data/paper/requirements.json`; it explicitly says full conformance is false.
 
-`collection="extended"` selects **93 source units / 11,825 triplets**, including
+`collection="extended"` selects **95 source units / 11,865 triplets**, including
 **11,040 bulk replicas** (20 families × 6 severities × 92 primary source units).
 Bulk replicas have no semantic quality gate, may lose task evidence, and use
 `extension-unreviewed-render-v1` / `unreviewed_expansion`. Source evidence moves
@@ -17,7 +17,15 @@ The following stricter construction rules describe simulator source units and
 the earlier screened replica pipeline, **not** unreviewed bulk replicas.
 
 Triplet membership is disjoint; unit membership overlaps. Total unique units
-are 93, not 71+93. Historical archive membership is retained separately.
+are 95, not 71+95. Historical archive membership is retained separately.
+
+The review annotations in `data/review/` cover 1,036 candidates (996 previous
+paper candidates and 40 fresh strict television candidates). The agent rejected
+23: one obscured bread cooking surface, 15 bowl replicas whose dirt cue is
+masked by water/reflections, and seven strong-noise replicas that lose fine
+surface cues. All 996 selected triplets have passing proxy annotations bound
+to exact asset and label hashes. This is one agent's judgment; no human panel,
+inter-rater agreement, or model performance measurement is claimed.
 
 ## Intended use
 

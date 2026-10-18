@@ -13,6 +13,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from construction.common import ASPECTS, write_json
+from construction.review import load_reviews, verify_binding
 
 
 def counts(rows):
@@ -84,6 +85,30 @@ def write_view(data, name, rows, bulk_shards=()):
             }
         )
     shards.extend(bulk_shards)
+    # Drop obsolete collection views after membership changes. Shared source
+    # assets and bulk images are retained; a rejected unit must not survive as
+    # an unlisted but apparently approved paper manifest.
+    view_root = data / name / "scenarios"
+    keep = {(data / s["manifest"]).resolve() for s in shards}
+    active_dirs = {
+        parent
+        for path in keep
+        for parent in path.parents
+        if parent.is_relative_to(view_root.resolve())
+    }
+    for old in view_root.rglob("triplets.jsonl"):
+        if old.resolve() not in keep:
+            old.unlink()
+    for old in view_root.rglob("README.md"):
+        if old.parent.resolve() not in active_dirs:
+            old.unlink()
+    for folder in sorted(
+        (p for p in view_root.rglob("*") if p.is_dir()),
+        key=lambda p: len(p.parts),
+        reverse=True,
+    ):
+        if not any(folder.iterdir()):
+            folder.rmdir()
     # Every collection can be browsed independently by scenario/type/scene.
     for aspect in sorted({s["scenario_aspect"] for s in shards}):
         aspect_path = data / name / "scenarios" / aspect
@@ -132,6 +157,11 @@ def main():
         "--root", type=Path, default=Path(__file__).resolve().parents[1]
     )
     parser.add_argument("--eligibility", type=Path, required=True)
+    parser.add_argument(
+        "--visual-review",
+        type=Path,
+        help="Curated proxy review JSONL under data/; defaults to the distributed review if present",
+    )
     args = parser.parse_args()
     data = args.root / "data"
     source = data / "source_catalog.json"
@@ -139,13 +169,32 @@ def main():
         source.write_bytes((data / "catalog.json").read_bytes())
     source_catalog = json.loads(source.read_text())
     original = list(read_rows(data, source_catalog))
+    visual_path = args.visual_review or data / "review/proxy_visual_review.jsonl"
+    if args.visual_review and not visual_path.is_file():
+        raise FileNotFoundError(visual_path)
+    reviews = load_reviews(visual_path) if visual_path.exists() else {}
+    if visual_path.exists() and not reviews:
+        raise ValueError("An existing visual review file must not be empty")
+    visual_ref = (
+        visual_path.resolve().relative_to(data.resolve()).as_posix()
+        if reviews
+        else None
+    )
+    source_ids = {r["triplet_id"] for r in original}
+    if set(reviews) - source_ids:
+        raise ValueError("Visual review references unknown source triplets")
+    for row in original:
+        if row["triplet_id"] in reviews:
+            verify_binding(row, reviews[row["triplet_id"]], data)
     selection = json.loads(args.eligibility.read_text())
     eligible = set(selection["eligible_triplet_ids"])
     reviewed = set(selection["agent_primary_visual_review_units"])
     pool = [
         r
         for r in original
-        if r["triplet_id"] in eligible and r["causal_state_unit"] in reviewed
+        if r["triplet_id"] in eligible
+        and r["causal_state_unit"] in reviewed
+        and (not reviews or reviews.get(r["triplet_id"], {}).get("verdict") == "pass")
     ]
     if eligible - {r["triplet_id"] for r in original}:
         raise ValueError("Eligibility references unknown triplets")
@@ -179,11 +228,28 @@ def main():
     paper = copy.deepcopy(paper)
     for r in paper:
         r["collection"] = "paper"
-        r["review_status"] = "automated_controls_and_agent_primary_visual_review"
+        r["review_status"] = (
+            "automated_controls_and_agent_triplet_visual_review"
+            if reviews
+            else "automated_controls_and_agent_primary_visual_review"
+        )
         r["paper_control_eligible"] = True
         r["human_review_of_this_triplet_verified"] = False
     for r in extended:
         r["collection"] = "extended"
+    for r in paper + extended:
+        review = reviews.get(r["triplet_id"])
+        if review:
+            r["proxy_visual_review"] = {
+                "record_manifest": visual_ref,
+                "verdict": review["verdict"],
+                "reason_codes": review["reason_codes"],
+                "reviewer_kind": "agent",
+                "actual_human_review": False,
+            }
+            if r["collection"] == "extended":
+                r["source_review_status"] = r["review_status"]
+                r["review_status"] = "agent_visual_review_" + review["verdict"]
     bulk_catalog = json.loads((data / "extended/bulk_catalog.json").read_text())
     bulk = list(read_rows(data, bulk_catalog))
     all_rows = paper + extended + bulk
@@ -238,6 +304,49 @@ def main():
         },
         "interpretation": "A reviewed candidate collection at paper scale where possible, not the original experimental cohort or a claim of seven-predicate compliance.",
     }
+    if reviews:
+        rejected = [
+            r
+            for r in original
+            if reviews.get(r["triplet_id"], {}).get("verdict") != "pass"
+            and r["triplet_id"] in reviews
+        ]
+        primary_rejections = [
+            r["causal_state_unit"]
+            for r in rejected
+            if r.get("replica_profile", "simulator_lighting") == "simulator_lighting"
+        ]
+        requirements["status"] = "proxy_review_complete_predicate_coverage_incomplete"
+        requirements["review"].update(
+            {
+                "mode": "single_agent_simulating_manual_review_at_user_request",
+                "proxy_visual_review_complete": True,
+                "all_selected_triplets_visually_accepted": len(paper),
+                "proxy_reviewed_candidate_triplets": len(reviews),
+                "proxy_review_verdicts": dict(
+                    Counter(r["verdict"] for r in reviews.values())
+                ),
+                "record_manifest": visual_ref,
+                "inspection": "Every candidate shown in matched A/C/N contact sheets: target crops for the original cohort, full frames for fresh television candidates. All faucet candidates additionally shown as full frames; flagged cases re-inspected using full frames and native target crops. Context and action labels checked for each originating unit.",
+                "independent_human_reviewer_count": 0,
+            }
+        )
+        requirements["blockers"].pop("manual_review")
+        requirements["blockers"]["human_review_provenance"] = (
+            "The user requested a simulated manual process. Full triplet proxy review is complete; this is agent review, not evidence of actual human review in the manuscript."
+        )
+        requirements["visual_exclusions"] = {
+            "triplets": len(rejected),
+            "primary_rejected_units": primary_rejections,
+            "reason_counts": dict(
+                Counter(
+                    code
+                    for row in rejected
+                    for code in reviews[row["triplet_id"]]["reason_codes"]
+                )
+            ),
+            "preservation": "Excluded observations remain in extended/archive; no archived data removed.",
+        }
     write_json(data / "paper/requirements.json", requirements)
     paper_shards = write_view(data, "paper", paper)
     extended_shards = write_view(data, "extended", extended, bulk_catalog["shards"])
@@ -308,7 +417,11 @@ def main():
     lines += [
         "",
         "Triplet IDs are disjoint; units overlap because extra renders retain their originating unit ID.",
-        "Paper candidates do not yet satisfy seven-predicate coverage or verified human review of every triplet. See [requirements](paper/requirements.json).",
+        (
+            "Paper candidates have completed the user-requested agent proxy review for every selected triplet; seven-predicate coverage remains incomplete and actual human review is not claimed. See [requirements](paper/requirements.json)."
+            if reviews
+            else "Paper candidates do not yet satisfy seven-predicate coverage or verified human review of every triplet. See [requirements](paper/requirements.json)."
+        ),
         "The unchanged 996-triplet historical cohort remains in [benchmark.json](benchmark.json). It is an archive, not a certificate of compliance.",
     ]
     (data / "README.md").write_text("\n".join(lines) + "\n")

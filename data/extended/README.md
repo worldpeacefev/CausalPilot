@@ -1,13 +1,16 @@
 # 扩展集
 
-93 个来源 causal units / 11,825 triplets / 35,475 observations，覆盖七类谓词。
+95 个来源 causal units / 11,865 triplets / 35,595 observations，覆盖七类谓词。
 与 paper 的 triplet IDs 不重叠，但可以共享 unit；同一 unit 的图像变体不是独立样本。
 
 入口：[catalog.json](catalog.json)；批量部分：[bulk_catalog.json](bulk_catalog.json)。
 
+本轮代理复核移出的 23 条也保留在这里，带 `proxy_visual_review.verdict="reject"`
+及具体原因。其他未审核扩展不因共享来源而自动获得审核通过状态。
+
 批量扩展包含 20 类 nuisance、每类 6 档强度，共 11,040 triplets（33,120 张真实图像文件）。
-来源为 92 个已有 simulator primary units；新替换的 FloorPlan216 unit 另有 19 个
-既有构建流程的额外 profiles。批量图像为 256×256 JPEG，质量参数 82。
+来源为 92 个已有 simulator primary units；FloorPlan216、205、214 的新建电视
+units 另有既有构建流程的额外 profiles。批量图像为 256×256 JPEG，质量参数 82。
 
 批量部分遵照用户“扩展数量可以很多、质量没有要求”的指示，不做语义质量筛选，
 标为 `unreviewed_expansion` / `extension-unreviewed-render-v1`。动作标签继承来源，

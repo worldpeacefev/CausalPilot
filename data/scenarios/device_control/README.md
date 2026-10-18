@@ -4,4 +4,4 @@ Source simulator/screened view (before bulk expansion).
 
 | Predicate | Units | Triplets |
 | --- | ---: | ---: |
-| [isToggled](isToggled/) | 24 | 442 |
+| [isToggled](isToggled/) | 26 | 482 |

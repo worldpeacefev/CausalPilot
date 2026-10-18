@@ -7,29 +7,33 @@ Anchor / Causal / Nuisance 三元观测 benchmark，按场景、谓词类型和�
 | 集合 | Causal units | Triplets | Observations | 谓词类型 |
 | --- | ---: | ---: | ---: | ---: |
 | [论文规模候选集 paper](data/paper/) | 71 | 996 | 2,988 | 4 |
-| [扩展集 extended](data/extended/) | 93 | 11,825 | 35,475 | 7 |
+| [扩展集 extended](data/extended/) | 95 | 11,865 | 35,595 | 7 |
 
-**论文候选集尚不能标为完全符合论文。** 已逐条核查原始元数据、状态控制、动作集合、
-可见性、bbox 门槛与图像信号，并对每个入选 unit 的 primary 三元图做了代理视觉审核。
-但七类谓词中有三类尚不能通过论文原来的认证规则；也没有声称完成了论文要求的
-逐条人工复核。具体缺口见 [paper/requirements.json](data/paper/requirements.json)。
+**已按用户要求完成全部论文候选的模拟人工复核，实际审核者为 Codex 代理。**
+逐条核查原始元数据、状态、动作、可见性及图像信号，并逐图查看 Anchor/Causal/Nuisance。
+本轮查看 1,036 条候选，23 条因熟化表面不可见、水面反光遮蔽或强噪声破坏线索而移入扩展；
+用严格重建并经过逐图复核的候选补足，最终仍为 71 units / 996 triplets。
+[逐条质量标注与复核流程](data/review/)绑定原图、元数据、状态快照和标签的哈希。
 
-按用户要求优先保留论文原口径，没有放宽三类 certification tiers 来补齐类别。
-审核排除了画面无法辨认开关的 FloorPlan224 电视 unit，加入新重建、严格控制的
-FloorPlan216 电视 unit。这个候选集改变了成员，不能直接沿用论文原实验指标。
+**仍不能标为完全符合论文。** 液体、切片、耗材三类尚无法通过论文原三类认证规则，
+没有放宽规则补类别，也没有将代理复核写成真实人类审核。
+具体口径见 [paper/requirements.json](data/paper/requirements.json)。
+此前排除的 FloorPlan224 侧面电视继续只留在扩展/归档；新建电视 units 位于
+FloorPlan216、205、214。候选成员有变动，不能直接沿用论文原实验指标。
 
 扩展集包含七类谓词、额外独立 units，以及 **20 类 × 6 档 × 92 个来源 units =
 11,040 条**新增图像扰动 triplets。批量部分为 256×256 JPEG，标为
 `unreviewed_expansion`，继承来源动作标签，允许强扰动抹去视觉证据，不声称质量合格。
 
-两个集合共享部分 units：更多扰动不增加独立 causal unit 数。总计 **93 个独立
-units、12,821 个 triplets、38,463 个 observations**。
+两个集合共享部分 units：更多扰动不增加独立 causal unit 数。总计 **95 个独立
+units、12,861 个 triplets、38,583 个 observations**。
 历史 71 units / 996 triplets 的 ID、标签和原图完整保存在归档清单，且都仍在完整发布中。
 
 ```text
 data/
   paper/                     # 论文规模候选清单、要求缺口、分类入口
   extended/                  # 扩展清单、批量图像、分类入口
+  review/                    # 样本质量标注、代理复核流程与哈希绑定
   catalog.json               # 两个集合的完整入口
   counts.json                # 精确数量，含两个集合的分别统计
   source_catalog.json        # 批量扩展前的可追溯构建入口

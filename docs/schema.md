@@ -81,3 +81,17 @@ The paper pools the 996 triplets. For any larger release, report its exact
 partition/tier selection and denominator. Bootstrap whole causal-state units,
 carrying every accepted replica together. Unit-balanced and pooled-triplet
 averages answer different questions.
+
+## Proxy visual review provenance
+
+`data/review/proxy_visual_review.jsonl` contains actual per-triplet agent
+judgments: `verdict`, `reason_codes`, a cue-specific note, inspection scope,
+visual/label criteria and exact context/asset SHA-256 bindings. It explicitly
+states `reviewer_kind="agent"` and `actual_human_review=false`. This is dataset
+quality annotation, not model inference or a benchmark test result.
+
+Selected paper records have
+`review_status="automated_controls_and_agent_triplet_visual_review"` and a
+`proxy_visual_review` reference. Rejected records stay in the extended/archive
+views and are never admitted merely to fill quotas. An annotation becomes stale
+if its reviewed image, metadata, symbolic state or task/action labels change.

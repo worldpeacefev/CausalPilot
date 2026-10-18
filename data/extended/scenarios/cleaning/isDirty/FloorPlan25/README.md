@@ -2,5 +2,5 @@
 
 All record paths resolve relative to top-level `data/`.
 
-- [triplets.jsonl](triplets.jsonl) (4 triplets)
+- [triplets.jsonl](triplets.jsonl) (5 triplets)
 - [isdirty__cook__Bread_Plate(d)_FloorPlan25_V1/triplets.jsonl](isdirty__cook__Bread_Plate%28d%29_FloorPlan25_V1/triplets.jsonl) (120 triplets)

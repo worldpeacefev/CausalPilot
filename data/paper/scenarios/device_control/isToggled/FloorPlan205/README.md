@@ -1,0 +1,5 @@
+# FloorPlan205 / isToggled
+
+All record paths resolve relative to top-level `data/`.
+
+- [triplets.jsonl](triplets.jsonl) (12 triplets)
