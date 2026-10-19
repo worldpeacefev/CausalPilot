@@ -1,7 +1,7 @@
 [project]
 name = "causalpilot-bench"
 version = "0.2.0"
-description = "Classified CausalPilot benchmark data and construction tools"
+description = "Matched visual interventions for embodied decision grounding"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24,<3", "pillow>=10,<13"]
 

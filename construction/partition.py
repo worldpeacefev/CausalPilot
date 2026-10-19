@@ -403,26 +403,35 @@ def main():
         }
     write_json(data / "unit_index.json", index)
     lines = [
-        "# Benchmark collections",
+        "# Explore the collections",
         "",
-        "All manifest paths resolve relative to top-level `data/`.",
+        "Browse matched decision checkpoints by semantic aspect, predicate, and FloorPlan.",
+        "All observation paths resolve relative to the top-level `data/` directory.",
         "",
         "| Collection | Units | Triplets | Observations | Predicates |",
         "| --- | ---: | ---: | ---: | ---: |",
     ]
     for name, c in (("paper", paper_counts), ("extended", extended_counts)):
+        label = "Curated core (`paper`)" if name == "paper" else "Expanded (`extended`)"
         lines.append(
-            f"| [{name}]({name}/) | {c['causal_state_units']} | {c['triplets']} | {c['observations']} | {len(c['states_by_predicate'])} |"
+            f"| [{label}]({name}/) | {c['causal_state_units']:,} | {c['triplets']:,} | {c['observations']:,} | {len(c['states_by_predicate'])} |"
         )
     lines += [
         "",
-        "Triplet IDs are disjoint; units overlap because extra renders retain their originating unit ID.",
+        "Triplet IDs are disjoint; units overlap because replicas retain their source-unit identity.",
         (
-            "Paper candidates have completed the user-requested agent proxy review for every selected triplet; seven-predicate coverage remains incomplete and actual human review is not claimed. See [requirements](paper/requirements.json)."
+            "Every selected core triplet has passing agent visual-review provenance."
             if reviews
-            else "Paper candidates do not yet satisfy seven-predicate coverage or verified human review of every triplet. See [requirements](paper/requirements.json)."
+            else "Core records retain their per-record review status; see the collection requirements for review coverage."
         ),
-        "The unchanged 996-triplet historical cohort remains in [benchmark.json](benchmark.json). It is an archive, not a certificate of compliance.",
+        f"The combined release contains **{full_counts['causal_state_units']:,} source units / {full_counts['triplets']:,} triplets / {full_counts['observations']:,} observations**.",
+        "",
+        "[Dataset card](../docs/dataset_card.md) · [Schema and metrics](../docs/schema.md) ·",
+        "[Core requirements](paper/requirements.json) · [Curation records](review/)",
+        "",
+        "The preserved [reference archive](benchmark.json) contains the original 996-triplet cohort.",
+        "Use the collection catalogs for the curated and expanded views, with collection-specific",
+        "evidence and review contracts described in the dataset card.",
     ]
     (data / "README.md").write_text("\n".join(lines) + "\n")
     print(

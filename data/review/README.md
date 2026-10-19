@@ -1,31 +1,53 @@
-# 模拟人工复核的样本质量标注
+# Visual curation records
 
-按用户要求，由 **Codex 单个代理**模拟人工复核流程，实际人类审核者数量为 **0**。
-这不是多人独立评审，不报告虚构的一致率或人类签名。
+Per-triplet annotations connect visual curation to the exact released assets.
+Every selected core triplet has a passing annotation.
 
-[proxy_visual_review.jsonl](proxy_visual_review.jsonl) 是逐条标注；
-[summary.json](summary.json) 说明复核范围。每条判定绑定实际查看的三张图、原始
-metadata、symbolic state 和任务/动作标签的 SHA-256，内容变动后必须重新复核。
+[Annotations](proxy_visual_review.jsonl) · [Coverage summary](summary.json) ·
+[Binding implementation](../../construction/review.py)
 
-流程：
+## Coverage and provenance
 
-1. 对原 996 条论文候选逐张查看 A/C/N 目标区域图，检查状态差异、遮挡、图像伪影及
-   Nuisance 是否仍保留动作分支所需线索。已有原始状态、动作集合与可见性核查作为另一层证据。
-2. 对 73 个来源 units 检查 instruction、history、target 与三个角色的动作标签，
-   判断图像线索是否能支持预期的局部下一步动作。
-3. 对熟化、反光器皿、强噪声、侧视冰箱、抽屉和手持碗遮挡等疑点回看完整图及原图裁剪。
-   水龙头的水流可能位于 instance bbox 外，因此额外查看全部 96 条水龙头三元完整图。
-4. 只把四项视觉/语义条件均通过者标为 pass；无法可靠确认时保守排除。
-5. 新建替补 units 后，对其 40 条候选逐图检查完整画面，并独立检查原始精确状态控制。
+| Item | Count or method |
+| --- | --- |
+| Reviewed triplets | 1,036 |
+| Inspected observations | 3,108 |
+| Source-unit contexts checked | 73 |
+| Passing candidates | 1,013 |
+| Excluded candidates | 23 |
+| Selected core triplets | 996 |
+| Reviewer | One Codex agent |
+| Review type | Agent visual review following a manual-style inspection procedure |
+| Actual human reviewers | 0 |
 
-共查看 **1,036 条 triplets / 3,108 张 observations**，其中 **1,013 条 pass、23 条 reject**。
-23 条排除项包括 1 条熟化表面不可见的面包、15 条脏污线索被水面反光遮蔽的碗，
-以及 7 条强噪声下无法确认细微状态的图。最终 paper 选择 996 条 pass；另外
-17 条 pass 候选及全部排除项仍留在 extended。原始归档不删除。
+These are dataset quality annotations. They record agent judgments and do not
+represent a human perception study, independent reviewer agreement, or model
+performance measurements.
 
-局限：这是代理判断，并非人类感知实验或真实人工审核。主体检查使用匹配裁剪概览，
-疑点才补看完整图；它不意味着每张图都做了逐像素人工检查。没有访问被测方法的
-预测输出，没有用模型成绩筛样本。完整画面、数据文件及哈希仍可供作者复核。
+## Inspection procedure
 
-这些文件是数据集的质量标注与来源说明，不包含 benchmark 模型测试代码或测试结果。
-未审核扩展与被排除样本的扰动后代，不因共享 source unit 自动视为审核通过。
+1. Inspect matched Anchor/Causal/Nuisance target crops for state contrast,
+   visibility, occlusion, image artifacts, and preservation of the nuisance cue.
+2. Check each source unit's instruction, completed history, target, and action
+   labels against the visible local decision.
+3. Revisit ambiguous cases using full frames and native target crops. Inspect
+   all 96 faucet triplets in full frames because water particles can lie outside
+   the faucet instance bounding box.
+4. Inspect all 40 fresh television candidates in full frames alongside
+   independent exact state-control checks.
+5. Accept a triplet only when all four recorded visual/context criteria pass.
+
+Primary inspection used matched crop contact sheets, with full-frame follow-up
+as described above. Selection did not use predictions from the evaluated methods.
+Records preserve individual verdicts, reason codes, and cue-specific notes.
+
+## Binding and selection
+
+Each annotation contains SHA-256 bindings for all three images, raw metadata
+files, symbolic snapshots, and the reviewed task/action context. Changing those
+assets or labels invalidates the annotation.
+
+All 996 selected core records pass review. The remaining 17 passing candidates
+and 23 excluded candidates retain their annotations in the expanded collection;
+the reference archive is preserved. Source review does not automatically certify
+an unreviewed transformed descendant.

@@ -26,8 +26,9 @@ def iter_triplets(
 
     metadata_only=True excludes the trace-derived isUsedUp tier by default.
     Set it to False explicitly to include that qualified extension, including
-    bulk renders derived from it. collection="paper" selects candidates with
-    unresolved paper requirements; consult paper/requirements.json first.
+    bulk renders derived from it. collection="paper" selects the curated core;
+    its scope and evidence contracts are recorded in paper/requirements.json
+    and docs/dataset_card.md.
     """
     root = Path(data_root)
     if collection not in (None, "paper", "extended"):

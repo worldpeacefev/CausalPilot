@@ -1,12 +1,20 @@
-# Benchmark collections
+# Explore the collections
 
-All manifest paths resolve relative to top-level `data/`.
+Browse matched decision checkpoints by semantic aspect, predicate, and FloorPlan.
+All observation paths resolve relative to the top-level `data/` directory.
 
 | Collection | Units | Triplets | Observations | Predicates |
 | --- | ---: | ---: | ---: | ---: |
-| [paper](paper/) | 71 | 996 | 2988 | 4 |
-| [extended](extended/) | 95 | 11865 | 35595 | 7 |
+| [Curated core (`paper`)](paper/) | 71 | 996 | 2,988 | 4 |
+| [Expanded (`extended`)](extended/) | 95 | 11,865 | 35,595 | 7 |
 
-Triplet IDs are disjoint; units overlap because extra renders retain their originating unit ID.
-Paper candidates have completed the user-requested agent proxy review for every selected triplet; seven-predicate coverage remains incomplete and actual human review is not claimed. See [requirements](paper/requirements.json).
-The unchanged 996-triplet historical cohort remains in [benchmark.json](benchmark.json). It is an archive, not a certificate of compliance.
+Triplet IDs are disjoint; units overlap because replicas retain their source-unit
+identity. Every selected core triplet has passing agent visual-review provenance.
+The combined release contains **95 source units / 12,861 triplets / 38,583 observations**.
+
+[Dataset card](../docs/dataset_card.md) · [Schema and metrics](../docs/schema.md) ·
+[Core requirements](paper/requirements.json) · [Curation records](review/)
+
+The preserved [reference archive](benchmark.json) contains the original 996-triplet
+cohort. Use the collection catalogs for the curated and expanded views, with
+collection-specific evidence and review contracts described in the dataset card.

@@ -1,142 +1,143 @@
 # Dataset card
 
-## Current two-collection release
+CausalPilot-Bench is a structured diagnostic for local next-action grounding in
+AI2-THOR household scenes. Matched observations connect state-sensitive action
+changes with nuisance consistency at a fixed decision checkpoint.
 
-`collection="paper"` selects **71 units / 996 triplets** passing exact original
-state-control tiers and per-record automated checks, with user-requested agent visual review
-of every selected triplet. This is a **candidate** collection: only four predicates pass
-the original rules. Proxy review is complete; actual human review is not claimed.
-See `data/paper/requirements.json`; it explicitly says full conformance is false.
+## Release at a glance
 
-`collection="extended"` selects **95 source units / 11,865 triplets**, including
-**11,040 bulk replicas** (20 families × 6 severities × 92 primary source units).
-Bulk replicas have no semantic quality gate, may lose task evidence, and use
-`extension-unreviewed-render-v1` / `unreviewed_expansion`. Source evidence moves
-to `source_validation`; it does not certify the delivered 256×256 JPEG image.
-The following stricter construction rules describe simulator source units and
-the earlier screened replica pipeline, **not** unreviewed bulk replicas.
+| Collection | Units | Triplets | Observations | Predicate types |
+| --- | ---: | ---: | ---: | ---: |
+| Curated core (`paper`) | 71 | 996 | 2,988 | 4 |
+| Expanded (`extended`) | 95 | 11,865 | 35,595 | 7 |
+| **Combined, unique** | **95** | **12,861** | **38,583** | **7** |
 
-Triplet membership is disjoint; unit membership overlaps. Total unique units
-are 95, not 71+95. Historical archive membership is retained separately.
+The release spans 48 physical scenes and five semantic aspects. Triplet IDs
+are disjoint across collections; source units overlap. Complete counts appear
+in [counts.json](../data/counts.json).
 
-The review annotations in `data/review/` cover 1,036 candidates (996 previous
-paper candidates and 40 fresh strict television candidates). The agent rejected
-23: one obscured bread cooking surface, 15 bowl replicas whose dirt cue is
-masked by water/reflections, and seven strong-noise replicas that lose fine
-surface cues. All 996 selected triplets have passing proxy annotations bound
-to exact asset and label hashes. This is one agent's judgment; no human panel,
-inter-rater agreement, or model performance measurement is claimed.
+The core uses the original three state-control tiers and passing agent visual
+annotations for all 996 triplets. Its target predicates are `isDirty`, `isOpen`,
+`isToggled`, and `isCooked`. The `paper` collection key denotes the curated
+paper-scale subset, whose membership differs from the archived experimental
+cohort. It is not a seven-predicate paper-certified replacement; full-conformance
+status and exact coverage remain in [requirements.json](../data/paper/requirements.json).
+Published scores belong to their original evaluation cohort.
+
+The expanded collection adds seven-predicate coverage through explicit
+extension contracts. Its bulk suite contributes 11,040 triplets from 92 source
+units, 20 nuisance families, and six severities. Bulk records inherit source
+labels, are marked `unreviewed_expansion`, and may obscure decision evidence.
+Source validation does not certify the delivered 256×256 JPEG image.
 
 ## Intended use
 
-Diagnose local next-action grounding under matched visual interventions in
-AI2-THOR household scenes. These are checkpoint decisions, not complete
-interactive episodes or real-world robot demonstrations.
+Study causal response, nuisance invariance, and jointly grounded next actions.
+These samples represent local checkpoints in a procedural household simulator.
+They support controlled diagnostic studies; additional validation is needed for
+claims about interactive task completion or physical robot deployment.
 
-The archived population is preserved for comparison with the manuscript.
-The classified catalog additionally contains predicate and nuisance extensions.
-Use `release_partition`, `certification_tier`, and `review_status` to specify
-the population in any reported result.
+Specify `collection`, `release_partition`, `certification_tier`, and
+`review_status` when defining a reported population.
 
-## Certification and provenance
+## Evidence contracts
 
-The archived tier names retain their historical meaning:
-
-| Tier | State changes | Visibility |
+| Tier | Permitted causal changes | Visibility |
 | --- | --- | --- |
 | `pilot-v3-strict` | Target Boolean only | Target bbox ≥1% |
-| `extended-target-articulation-v1` | Target Boolean and its own openable pose | Target bbox ≥1%; two archived Microwave units are corrected to this tier in the classified catalog |
-| `extended-small-visible-v1` | Historical core controls | Dirty vessel bbox ≥0.5%, cooked bbox ≥0.15%; target-union RMS gate |
+| `extended-target-articulation-v1` | Target Boolean and the openable target's own pose | Target bbox ≥1% |
+| `extended-small-visible-v1` | Original core state controls | Dirty vessel bbox ≥0.5%; cooked food bbox ≥0.15%; target-union RMS ≥1 |
+| `extension-liquid-content-v1` | Target liquid Boolean and `fillLiquid` | Target bbox ≥1% |
+| `extension-target-topology-v1` | Original target slicing state, its descendants, and direct reciprocal containment | Target/descendant union bbox ≥1% |
+| `extension-intervention-trace-v1` | Successful controlled consumable intervention with visible local change | Target bbox ≥0.15% |
+| `extension-unreviewed-render-v1` | Image-space stress transforms with inherited source labels | No delivered-image visibility certificate |
 
-New predicate extensions use separate, explicit contracts:
+For liquid and slice sources, unrelated objects, inventory, and agent state
+remain controlled. Slice topology contracts permit only the original target,
+its simulator-named descendants, and direct reciprocal receptacle membership.
+The fixed object-type context is the union across roles.
 
-- `extension-liquid-content-v1`: `isFilledWithLiquid` and the target's
-  `fillLiquid` may change together. Other symbolic objects, inventory, poses,
-  and the agent remain equal across fresh reconstructions.
-- `extension-target-topology-v1`: original target `isSliced`, creation of its
-  own simulator-named descendants, original target parent membership and direct
-  receptacle reciprocal membership may change. Unrelated creation or membership
-  changes are rejected. Visibility is the union of the target and its slices.
-- `extension-intervention-trace-v1`: consumable state comes from a successful
-  controlled intervention and a visible target-local image change. Raw metadata
-  remains untouched and still reports `isUsedUp=false`. This layer is weaker
-  than metadata certification and is excluded by the default loader.
+Consumable labels use a documented successful intervention and visible
+local change. Raw metadata is preserved and reports `isUsedUp=false` for these
+records; the extension label is trace-derived. The default loader excludes
+this tier and its bulk descendants. Set `metadata_only=False` to include it.
 
-New slice/liquid units require target/descendant bbox ≥1%; the separately
-qualified trace-derived consumable layer permits bbox ≥0.15% to retain the
-visible exhausted core. All simulator source units require target-local causal RMS ≥5 and
-nuisance full-image RMS ≥1, identical nuisance symbolic state, and separated
-action branches. Each role is reconstructed with a fresh scene reset; physics
-is paused before setup and interventions. This differs from starting a new
-Unity process per observation and is explicitly recorded in the recipe.
+Additional simulator sources use a fresh scene reset for each role, with
+physics paused before setup and intervention. Source gates require target-local
+causal RMS ≥5, nuisance full-image RMS ≥1, separated action branches, and
+controlled nuisance symbolic state. Recipes record the reset, poses, and
+commands; each observation does not require a new Unity process.
 
-The explicitly named `simulator_irrelevant_object` nuisance is an exception to
-whole-scene equality: only a visible, empty Drawer unrelated to the vessel
-task may change its open state and own articulated pose. The target, all
-other objects, inventory, and agent remain controlled. Its exact permitted
-paths are recorded in `nuisance_allowed_symbolic_differences`; the task-relevant
-state and acceptable action branch remain unchanged. It is a correlated
-replica of an existing unit, not a new causal-state unit.
+Recipes may restore movable/pickupable poses using `SetObjectPoses`. A declared
+`numeric_geometry_tolerance` permits position noise ≤0.00001 m and rotation
+noise ≤0.001 degrees. Boolean state, inventory, and containment remain exact.
+Records without that field require exact equality. This tolerance belongs to
+extension construction and does not modify the original strict tier.
 
-Recipes can restore movable/pickupable poses with `SetObjectPoses` before
-inspection. When a record declares `numeric_geometry_tolerance`, comparison
-allows only position noise ≤0.00001 m and rotation noise ≤0.001 degrees;
-predicates, inventory, and containment still require exact equality. Raw
-metadata/snapshots and all raw difference paths are retained. Records without
-this field use exact equality. This numerical allowance is an extension
-construction rule, not a retroactive change to the archived strict contract.
+The named `simulator_irrelevant_object` nuisance permits a visible, empty,
+task-irrelevant Drawer's open state and own articulated pose to change. The
+target, other objects, inventory, agent, and acceptable action branch remain
+controlled. Allowed paths are recorded in
+`nuisance_allowed_symbolic_differences`.
 
-The earlier screened render replicas require causal target-union RMS ≥1 and nuisance RMS
-≥1. These numerical gates check retained visual signal, **not human semantic
-visibility**. The resulting records remain `automated_checks_only` until a real
-review is recorded. No generated model response is used for selection.
+Screened render replicas require target-union causal RMS ≥1 and nuisance RMS
+≥1. These pixel-signal gates complement visual curation. Original strict
+records may retain weaker primary RMS, recorded in `primary_visual_signal`.
+Bulk variants keep source validation under `source_validation`; source bounding
+boxes refer to source dimensions and do not certify output-image visibility.
 
-The archived strict tier does not specify an RMS≥1 gate. Primary pairs below
-that additional diagnostic threshold are retained and explicitly tagged in
-`primary_visual_signal.quality_flags`. This signals weak average pixel contrast
-and a need for visual review, not an automatic revision of the paper's labels.
-New render replicas still must pass their RMS gate. The exact flagged-unit
-count is recorded in `data/counts.json`.
+## Visual curation
 
-## Context and labels
+[Per-triplet annotations](../data/review/) cover 1,036 candidates and bind each
+verdict to exact images, raw metadata, symbolic states, and task/action labels.
+All 996 selected core triplets have passing annotations.
 
-Acceptable actions are sets. `done none` is appropriate when the local task is
-already satisfied. It is not interchangeable with an unnecessary object action.
-Placement uses the destination receptacle as the object argument.
+The reviewer was one Codex agent using matched target crops, full-frame
+follow-up for ambiguous cases, full frames for all faucet candidates, and full
+frames for fresh television candidates. The records explicitly identify agent
+review and zero actual human reviewers. They do not establish the human-review
+provenance stated in the manuscript. Automatic checks and agent annotations are
+reported separately; source review does not transfer to generated descendants.
+Selection does not use predictions from evaluated methods.
 
-New slice contexts hold a Knife. Liquid tasks ask to empty the vessel; this
-avoids introducing a new `fill` action outside the manuscript vocabulary.
-Consumable tasks ask to collect a usable supply and leave an exhausted one.
-All roles share the same instruction and action history. The fixed object-type
-list is the union across roles, preventing slice creation from changing textual
-context between Anchor and Causal.
+## Context, labels, and information access
 
-Labels, target predicates, oracle facts, metadata, recipes, profile IDs, role
-names, filenames, and certification fields are privileged material. Model
-inputs should contain only instruction, history, legal action interface,
-the fixed object-type list, and a single current image. `observation_input`
-returns this restricted input; an adapter must send image bytes rather than
-exposing its informative filesystem path.
+Acceptable actions are sets. Anchor and Causal have nonempty disjoint sets;
+Nuisance retains the Anchor set. `done none` applies when the local goal is
+already satisfied. The object argument of `put` is the destination receptacle.
+Slice contexts hold a Knife; liquid contexts ask to empty the vessel;
+consumable contexts distinguish usable from exhausted supplies.
 
-## Grouping and limitations
+Model inputs contain only the fixed instruction, successful history, legal
+action interface, fixed object types, and one current image.
+`observation_input` returns these fields. Model adapters should send image
+bytes without revealing the informative filesystem path. Labels, reference
+predicates, oracle facts, metadata, recipes, role names, profile IDs, and
+certification fields are privileged evaluator material.
+
+## Sampling and reporting
 
 `causal_state_unit` identifies the intervention cluster. Replica counts do not
-increase the independent sample size. New units can share physical scenes or
-objects with archived units; they are additional checkpoint contexts, not a
-claim of statistical independence between all scenes. Optional construction
-partitions group complete physical scenes, including all sibling units and
-replicas. They are not the manuscript's experimental splits and do not establish
-that any model was trained without contamination.
+increase the number of source units. Units may share physical scenes and objects;
+95 source-unit identities do not imply 95 independent scenes. Uncertainty and
+paired comparisons should retain complete replica clusters.
 
-The extension is a small, procedurally generated household diagnostic. Its
-conditional consumable instructions, paused physics, and fixed inspection
-poses can be easier than unconstrained deployment. Labels encode the documented
-local high-level action interface; no new execution-success or end-to-end task
-completion claims are made. Renderer versions and hardware may affect pixels.
+The manuscript uses pooled-triplet weighting. Unit-balanced averages answer a
+separate question. Optional construction partitions group whole physical scenes
+and their sibling units; they are not manuscript experimental splits or evidence
+about training contamination. Report the exact selected denominator for each result.
 
-## Licensing
+Conditional consumable tasks, paused physics, and fixed inspection poses define
+the scope of this diagnostic. Renderer versions and hardware can affect pixels.
 
-Construction code retains the upstream MIT license. Consult
-[AI2-THOR](https://github.com/allenai/ai2thor) for simulator/asset terms. This
-release does not relicense third-party visual assets or include a new claim
-that all rendered observations have MIT asset rights.
+## Reproducibility and licensing
+
+The release includes raw simulator metadata, deduplicated symbolic snapshots,
+reconstruction recipes, source identities, transformation parameters, and a
+SHA-256 file manifest. The reference archive preserves original triplet IDs,
+action labels, and image bytes alongside the classified release.
+
+Construction code retains the upstream MIT [license](../LICENSE).
+[AI2-THOR](https://github.com/allenai/ai2thor) simulator assets and rendered
+content remain subject to upstream terms; the code license does not relicense
+third-party visual assets.
